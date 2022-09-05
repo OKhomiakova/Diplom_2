@@ -9,6 +9,7 @@ public class SetUp {
 
     public static RequestSpecification requestSpec() {
         return given()
-                .baseUri(BASE_URL);
+                .baseUri(BASE_URL)
+                .header("Content-type", "application/json");
         }
 }

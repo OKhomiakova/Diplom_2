@@ -15,7 +15,6 @@ public class OrderTestSteps {
         Response response = given()
                 .spec(SetUp.requestSpec())
                 .header("Authorization", accessToken)
-                .header("Content-type", "application/json")
                 .body(order)
                 .when()
                 .post(endPointOrders);

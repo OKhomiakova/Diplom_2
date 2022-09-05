@@ -18,7 +18,6 @@ public class UserTestSteps {
     public static Response createNewUser(User user) {
         Response response = given()
                 .spec(SetUp.requestSpec())
-                .header("Content-type", "application/json")
                 .body(user)
                 .when()
                 .post(endPointCreateUser);
@@ -29,7 +28,6 @@ public class UserTestSteps {
     public static Response loginUser(UserCreds credentials) {
         Response response = given()
                 .spec(SetUp.requestSpec())
-                .header("Content-type", "application/json")
                 .body(credentials)
                 .when()
                 .post(endPointLoginUser);
@@ -41,7 +39,6 @@ public class UserTestSteps {
         Response response = given()
                 .spec(SetUp.requestSpec())
                 .header("authorization", accessToken)
-                .header("Content-type", "application/json")
                 .body(user)
                 .when()
                 .patch(endPointUpdateOrDeleteUser);
