@@ -8,6 +8,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import ru.practicum.api.steps.OrderTestSteps;
 import ru.practicum.api.steps.UserTestSteps;
 
 import static org.apache.http.HttpStatus.SC_FORBIDDEN;
@@ -17,22 +18,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
 public class CreateUserTest {
+    private static UserTestSteps userTestSteps;
     private User user;
     private String accessToken;
 
     @Before
     public void generateDataForNewUser() {
-        String email = RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphanumeric(6);
-        String name = RandomStringUtils.randomAlphanumeric(6);
-
-        this.user = new User(email, password, name);
+        user = User.generateRandomUser();
+        userTestSteps = new UserTestSteps();
     }
 
     @After
     public void deleteUser() {
+        accessToken = userTestSteps.loginUserReturnAccessToken(user);
         if (!(accessToken == null)) {
-            UserTestSteps.deleteUser(accessToken);
+            userTestSteps.deleteUser(accessToken);
         }
     }
 
@@ -40,7 +40,7 @@ public class CreateUserTest {
     @DisplayName("Создать уникального пользователя")
     @Description("Создание нового пользователя с полными, корректными данными")
     public void createNewUserWithCorrectAndSufficientData() {
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
 //      response.prettyPrint();
 
@@ -62,8 +62,8 @@ public class CreateUserTest {
         @Test
         @DisplayName("Повторное создание существующего пользователя")
         public void createUserWithDuplicateData() {
-            Response firstResponse = UserTestSteps.createNewUser(user);
-            Response secondResponse = UserTestSteps.createNewUser(user);
+            Response firstResponse = userTestSteps.createNewUser(user);
+            Response secondResponse = userTestSteps.createNewUser(user);
 
             accessToken = firstResponse.body().jsonPath().getString("accessToken");
 
@@ -81,11 +81,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя с пустым email")
     public void createNewUserWithEmptyEmail() {
         User user = new User("", RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6));
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);
@@ -96,11 +97,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя без поля email")
     public void createNewUserWithoutEmail() {
         User user = new User(null, RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6));
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);
@@ -111,11 +113,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя с пустым password")
     public void createNewUserWithEmptyPassword() {
         User user = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", "", RandomStringUtils.randomAlphanumeric(6));
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);
@@ -126,11 +129,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя без поля password")
     public void createNewUserWithoutPassword() {
         User user = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", null, RandomStringUtils.randomAlphanumeric(6));
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);
@@ -141,11 +145,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя с пустым name")
     public void createNewUserWithEmptyName() {
         User user = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", RandomStringUtils.randomAlphanumeric(6), "");
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);
@@ -156,11 +161,12 @@ public class CreateUserTest {
     @DisplayName("Создание пользователя без поля name")
     public void createNewUserWithoutName() {
         User user = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", RandomStringUtils.randomAlphanumeric(6), null);
-        Response response = UserTestSteps.createNewUser(user);
+        Response response = userTestSteps.createNewUser(user);
 
         int actualStatusCode = response.statusCode();
         boolean isResponseSuccessful = response.jsonPath().getBoolean("success");
         String responseMessage = response.jsonPath().getString("message");
+        accessToken = response.body().jsonPath().getString("accessToken");
 
         assertEquals(SC_FORBIDDEN, actualStatusCode);
         assertFalse(isResponseSuccessful);

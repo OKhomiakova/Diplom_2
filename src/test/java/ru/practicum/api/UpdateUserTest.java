@@ -1,8 +1,6 @@
 package ru.practicum.api;
 
 import POJO.User;
-import POJO.UserCreds;
-import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -16,26 +14,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class UpdateUserTest {
+    private UserTestSteps userTestSteps;
     private User user;
     private String accessToken;
 
     @Before
     public void generateDataForNewUser() {
-        String email = RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphanumeric(6);
-        String name = RandomStringUtils.randomAlphanumeric(6);
-
-        this.user = new User(email, password, name);
-
-        UserTestSteps.createNewUser(user);
-        Response responseLogin = UserTestSteps.loginUser(UserCreds.from(user));
-        accessToken = responseLogin.body().jsonPath().getString("accessToken");
+        user = User.generateRandomUser();
+        userTestSteps = new UserTestSteps();
+        userTestSteps.createNewUser(user);
+        accessToken = userTestSteps.loginUserReturnAccessToken(user);
     }
 
     @After
     public void deleteUser() {
         if (!(accessToken == null)) {
-            UserTestSteps.deleteUser(accessToken);
+            userTestSteps.deleteUser(accessToken);
         }
     }
 
@@ -44,7 +38,7 @@ public class UpdateUserTest {
     public void updateUserSuccess() {
         User updatedUser = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6));
 
-        Response responseUpdate = UserTestSteps.updateUser(updatedUser, accessToken);
+        Response responseUpdate = userTestSteps.updateUser(updatedUser, accessToken);
 
         int actualStatusCode = responseUpdate.getStatusCode();
         boolean isResponseSuccessful = responseUpdate.jsonPath().getBoolean("success");
@@ -62,7 +56,7 @@ public class UpdateUserTest {
     @DisplayName("Обновление данных пользователя (без авторизации)")
     public void updateUserWithoutLogin() {
         User updatedUser = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6));
-        Response responseUpdate = UserTestSteps.updateUser(updatedUser, "");
+        Response responseUpdate = userTestSteps.updateUser(updatedUser, "");
 
         int actualStatusCode = responseUpdate.getStatusCode();
         String responseMessage = responseUpdate.jsonPath().getString("message");
@@ -76,7 +70,7 @@ public class UpdateUserTest {
     public void userUpdateEmailFieldTest() {
         String newEmail = RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru";
         User updatedEmailUser = new User(newEmail, user.getPassword(), user.getName());
-        Response responseUpdate = UserTestSteps.updateUser(updatedEmailUser, accessToken);
+        Response responseUpdate = userTestSteps.updateUser(updatedEmailUser, accessToken);
 
         int actualStatusCode = responseUpdate.getStatusCode();
         boolean isResponseSuccessful = responseUpdate.jsonPath().getBoolean("success");
@@ -94,7 +88,7 @@ public class UpdateUserTest {
     public void userUpdateEmailFieldWithoutAuthorizationTest() {
         String newEmail = RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru";
         User updatedEmailUser = new User(newEmail, user.getPassword(), user.getName());
-        Response responseUpdate = UserTestSteps.updateUser(updatedEmailUser, "");
+        Response responseUpdate = userTestSteps.updateUser(updatedEmailUser, "");
 
         int actualStatusCode = responseUpdate.getStatusCode();
         String responseMessage = responseUpdate.jsonPath().getString("message");
@@ -108,7 +102,7 @@ public class UpdateUserTest {
     public void userUpdatePasswordFieldWithoutAuthorizationTest() {
         String newPassword = RandomStringUtils.randomAlphanumeric(6);
         User updatedPasswordUser = new User(user.getEmail(), newPassword, user.getName());
-        Response responseUpdate = UserTestSteps.updateUser(updatedPasswordUser, "");
+        Response responseUpdate = userTestSteps.updateUser(updatedPasswordUser, "");
 
         int actualStatusCode = responseUpdate.getStatusCode();
         String responseMessage = responseUpdate.jsonPath().getString("message");
@@ -122,7 +116,7 @@ public class UpdateUserTest {
     public void userUpdateNameFieldTest() {
         String newName = RandomStringUtils.randomAlphanumeric(6);
         User updatedNameUser = new User(user.getEmail(), user.getPassword(), newName);
-        Response responseUpdate = UserTestSteps.updateUser(updatedNameUser, accessToken);
+        Response responseUpdate = userTestSteps.updateUser(updatedNameUser, accessToken);
 
         int actualStatusCode = responseUpdate.getStatusCode();
         boolean isResponseSuccessful = responseUpdate.jsonPath().getBoolean("success");
@@ -140,7 +134,7 @@ public class UpdateUserTest {
     public void userUpdateNameFieldWithoutAuthorizationTest() {
         String newName = RandomStringUtils.randomAlphanumeric(6);
         User updatedNameUser = new User(user.getEmail(), user.getPassword(), newName);
-        Response responseUpdate = UserTestSteps.updateUser(updatedNameUser, "");
+        Response responseUpdate = userTestSteps.updateUser(updatedNameUser, "");
 
         int actualStatusCode = responseUpdate.getStatusCode();
         String responseMessage = responseUpdate.jsonPath().getString("message");
@@ -153,13 +147,13 @@ public class UpdateUserTest {
     @DisplayName("Изменение поля email на уже занятую почту")
     public void userUpdateEmailFieldWithTakenEmailTest() {
         User newUser = new User(RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru", RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6));
-        UserTestSteps.createNewUser(newUser);
+        userTestSteps.createNewUser(newUser);
 
-        Response responseLoginNewUser = UserTestSteps.loginUser(UserCreds.from(newUser));
+        Response responseLoginNewUser = userTestSteps.loginUser(newUser);
         String emailNewUser = responseLoginNewUser.body().jsonPath().getString("user.email");
 
         User updateUserWithTakenEmail = new User(emailNewUser, user.getPassword(), user.getName());
-        Response responseUpdateReg = UserTestSteps.updateUser(updateUserWithTakenEmail, accessToken);
+        Response responseUpdateReg = userTestSteps.updateUser(updateUserWithTakenEmail, accessToken);
 
         int actualStatusCode = responseUpdateReg.getStatusCode();
         String responseMessage = responseUpdateReg.jsonPath().getString("message");

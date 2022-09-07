@@ -1,7 +1,6 @@
 package ru.practicum.api;
 
 import POJO.User;
-import POJO.UserCreds;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,31 +17,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LoginUserTest {
+    private UserTestSteps userTestSteps;
     private User user;
     private String accessToken;
 
     @Before
     public void generateDataForNewUser() {
-        String email = RandomStringUtils.randomAlphanumeric(5) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphanumeric(6);
-        String name = RandomStringUtils.randomAlphanumeric(6);
-
-        this.user = new User(email, password, name);
-
-        UserTestSteps.createNewUser(this.user);
+        user = User.generateRandomUser();
+        userTestSteps = new UserTestSteps();
+        userTestSteps.createNewUser(user);
     }
 
     @After
     public void deleteUser() {
+        User credentials = new User(user.getEmail(), user.getPassword(), null);
+        accessToken = userTestSteps.loginUserReturnAccessToken(credentials);
         if (!(accessToken == null)) {
-            UserTestSteps.deleteUser(accessToken);
+            userTestSteps.deleteUser(accessToken);
         }
     }
 
     @Test
     @DisplayName("Логин под существующим пользователем")
-    public void loginUserSuccess() {
-        Response responseLogin = UserTestSteps.loginUser(UserCreds.from(this.user));
+    public void loginUserSuccess() {;
+         Response responseLogin = userTestSteps.loginUser(user);
 
 //        System.out.println(user.getEmail());
 //        System.out.println(user.getPassword());
@@ -68,12 +66,13 @@ public class LoginUserTest {
     @Test
     @DisplayName("логин с неверным логином и паролем")
     public void loginUserWithInvalidCredentialsTest() {
-        UserCreds invalidCreds = new UserCreds(RandomStringUtils.randomAlphabetic(5) + "@yandex.ru", RandomStringUtils.randomNumeric(6));
+        User invalidCreds = new User(RandomStringUtils.randomAlphabetic(5) + "@yandex.ru", RandomStringUtils.randomNumeric(6), user.getName());
 
-        Response responseLogin = UserTestSteps.loginUser(invalidCreds);
+        Response responseLogin = userTestSteps.loginUser(invalidCreds);
 
         int statusCode = responseLogin.getStatusCode();
         String responseMessage = responseLogin.body().jsonPath().getString("message");
+        accessToken = responseLogin.body().jsonPath().getString("accessToken");
 
         assertThat(statusCode, equalTo(401));
         assertThat(responseMessage, equalTo("email or password are incorrect"));

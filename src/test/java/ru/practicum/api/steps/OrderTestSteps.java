@@ -8,10 +8,10 @@ import ru.practicum.api.SetUp;
 import static io.restassured.RestAssured.given;
 
 public class OrderTestSteps {
-    static String endPointOrders= "/api/orders";
+    private final String endPointOrders= "/api/orders";
 
     @Step("Создание нового заказа")
-    public static Response createNewOrder(Order order, String accessToken) {
+    public Response createNewOrder(Order order, String accessToken) {
         Response response = given()
                 .spec(SetUp.requestSpec())
                 .header("Authorization", accessToken)
@@ -22,7 +22,7 @@ public class OrderTestSteps {
     }
 
     @Step("Получение списка заказов")
-    public static Response getOrderList(String accessToken) {
+    public Response getOrderList(String accessToken) {
         Response response = given()
                 .spec(SetUp.requestSpec())
                 .header("authorization", accessToken)
